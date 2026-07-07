@@ -32,6 +32,8 @@
   .filters select:focus{outline:2px solid var(--accent);outline-offset:1px}
   .filters label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;font-weight:700}
   .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+  .kpis-sec{grid-template-columns:repeat(2,1fr)}
+  .kpi-wide .val{font-size:26px}
   .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px}
   .kpi .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
   .kpi .val{font-size:30px;font-weight:800;letter-spacing:-.02em;font-family:Georgia,serif}
@@ -99,9 +101,22 @@
         <div class="delta" id="k-ticket-d"></div>
       </div>
       <div class="kpi">
-        <div class="lab">Negociações em aberto</div>
+        <div class="lab">Pipeline atual (aberto)</div>
         <div class="val" id="k-aberto">—</div>
         <div class="delta" id="k-aberto-d"></div>
+      </div>
+    </div>
+
+    <div class="kpis kpis-sec">
+      <div class="kpi kpi-wide">
+        <div class="lab">Abertas criadas no mês selecionado</div>
+        <div class="val" id="k-aberto-mes">—</div>
+        <div class="delta" id="k-aberto-mes-d"></div>
+      </div>
+      <div class="kpi kpi-wide">
+        <div class="lab">Estágio quente hoje (SQL aberto)</div>
+        <div class="val" id="k-sql">—</div>
+        <div class="delta" id="k-sql-d"></div>
       </div>
     </div>
 
@@ -230,11 +245,20 @@ function render(){
   // KPI ticket
   document.getElementById('k-ticket').textContent=fmt(atual.ticket);
   setDelta('k-ticket-d',atual.ticket,ant?ant.ticket:null,mAnt,true);
-  // KPI aberto (total, não depende do mês)
+  // KPI pipeline atual (total, não depende do mês)
   const abertas=base.filter(d=>d.Status==='Aberta');
   const sqlAbertas=abertas.filter(d=>d.Etapa_Funil==='SQL').length;
   document.getElementById('k-aberto').textContent=fmt(abertas.length);
   document.getElementById('k-aberto-d').innerHTML='<span class="prev">'+fmt(sqlAbertas)+' em estágio quente (SQL)</span>';
+
+  // KPI abertas criadas no mês selecionado (muda com o mês)
+  const abertasMes=base.filter(d=>d.Status==='Aberta'&&d.Mes_Criada===mes).length;
+  document.getElementById('k-aberto-mes').textContent=fmt(abertasMes);
+  document.getElementById('k-aberto-mes-d').innerHTML='<span class="prev">leads de '+mesCurto(mes)+' ainda no pipeline</span>';
+
+  // KPI estágio quente hoje (SQL aberto, total — não depende do mês)
+  document.getElementById('k-sql').textContent=fmt(sqlAbertas);
+  document.getElementById('k-sql-d').innerHTML='<span class="prev">negociações prontas para fechar</span>';
 
   // gráficos só se o Chart.js tiver carregado; KPIs e motivos funcionam sem ele
   if(typeof Chart!=='undefined'){
