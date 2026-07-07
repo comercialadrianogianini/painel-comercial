@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Comercial — Invictus</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#14181F;        /* quase preto azulado */
+    --ink-soft:#3A424F;
+    --paper:#F7F6F2;      /* off-white quente */
+    --card:#FFFFFF;
+    --line:#E3E1DA;
+    --accent:#C8462B;     /* vermelho-tijolo Invictus */
+    --accent-soft:#F3D9D0;
+    --gold:#B8873B;       /* dourado sóbrio */
+    --green:#2F7A54;
+    --muted:#8A8E96;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:var(--paper);color:var(--ink);
+    -webkit-font-smoothing:antialiased;line-height:1.5;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 28px 60px}
+
+  /* Cabeçalho */
+  header{display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:8px}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .brand .kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:700}
+  .brand h1{font-size:30px;font-weight:800;letter-spacing:-.02em;font-family:Georgia,'Times New Roman',serif}
+  .period-pill{text-align:right;font-size:13px;color:var(--ink-soft)}
+  .period-pill strong{display:block;font-size:20px;color:var(--ink);font-weight:700}
+
+  .est-note{font-size:11.5px;color:var(--gold);margin:12px 0 24px;
+    padding:8px 12px;background:#FBF4E7;border-left:3px solid var(--gold);border-radius:0 4px 4px 0}
+
+  /* Filtros */
+  .filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+  .filters select{
+    appearance:none;border:1px solid var(--line);background:var(--card);
+    padding:9px 34px 9px 13px;border-radius:8px;font-size:13px;color:var(--ink);
+    font-weight:600;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A8E96' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center}
+  .filters select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .filters label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);display:block;margin-bottom:4px;font-weight:700}
+
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px}
+  .kpi .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .kpi .val{font-size:30px;font-weight:800;letter-spacing:-.02em;font-family:Georgia,serif}
+  .kpi .val .cur{font-size:16px;color:var(--ink-soft);font-weight:600;font-family:'Inter',sans-serif}
+  .kpi .delta{font-size:12.5px;margin-top:8px;font-weight:600;display:flex;align-items:center;gap:5px}
+  .up{color:var(--green)} .down{color:var(--accent)}
+  .kpi .prev{color:var(--muted);font-weight:500}
+  .kpi.est{position:relative}
+  .kpi.est .val::after{content:'*';color:var(--gold);font-size:18px;vertical-align:super}
+
+  /* Grid de gráficos */
+  .grid{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-top:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .panel h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);
+    font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+  .panel h3 .tag{font-size:10px;color:var(--muted);background:var(--paper);padding:3px 8px;border-radius:20px;text-transform:none;letter-spacing:0}
+  .chart-box{position:relative;height:260px}
+  .chart-box.tall{height:300px}
+
+  /* Tabela motivos */
+  .loss-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+  .loss-row .name{width:190px;font-size:12.5px;color:var(--ink-soft);font-weight:500;flex-shrink:0}
+  .loss-row .bar{flex:1;height:22px;background:var(--paper);border-radius:5px;overflow:hidden}
+  .loss-row .bar span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#E06B4F);border-radius:5px}
+  .loss-row .n{font-size:12.5px;font-weight:700;width:34px;text-align:right}
+
+  .foot{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+  @media(max-width:860px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .grid{grid-template-columns:1fr}
+    header{flex-direction:column;align-items:flex-start;gap:10px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <span class="kicker">Relatório Comercial</span>
+      <h1>Painel Invictus</h1>
+    </div>
+    <div class="period-pill">
+      Período de referência
+      <strong id="ref-label">Junho / 2026</strong>
+    </div>
+  </header>
+
+  <div class="est-note" id="est-note">
+    <strong>* Valores estimados.</strong> Vendas total e ticket médio são calculados por ticket médio manual por produto (o valor real ainda não é preenchido no Kommo). Número de vendas, negociações e motivos de perda são dados reais.
+  </div>
+
+  <div class="filters">
+    <div>
+      <label>Mês</label>
+      <select id="f-mes">
+        <option value="2026-02">Fevereiro / 2026</option>
+        <option value="2026-03">Março / 2026</option>
+        <option value="2026-04">Abril / 2026</option>
+        <option value="2026-05">Maio / 2026</option>
+        <option value="2026-06" selected>Junho / 2026</option>
+        <option value="2026-07">Julho / 2026</option>
+      </select>
+    </div>
+    <div>
+      <label>Produto</label>
+      <select id="f-prod">
+        <option value="todos" selected>Todos os produtos</option>
+        <option value="Comunidade Invictus">Comunidade Invictus</option>
+        <option value="Máquina de Tráfego">Máquina de Tráfego</option>
+        <option value="Máquina Black">Máquina Black</option>
+      </select>
+    </div>
+    <div>
+      <label>Canal</label>
+      <select id="f-canal">
+        <option value="todos" selected>Todos os canais</option>
+        <option value="Lista de espera">Lista de espera</option>
+        <option value="Checkout">Checkout</option>
+        <option value="Google">Google</option>
+        <option value="Facebook/Meta">Facebook/Meta</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="lab">Número de vendas</div>
+      <div class="val" id="k-vendas">179</div>
+      <div class="delta up" id="k-vendas-d">▲ 79,0% <span class="prev">vs. 100 em mai</span></div>
+    </div>
+    <div class="kpi est">
+      <div class="lab">Vendas total</div>
+      <div class="val"><span class="cur">R$ </span><span id="k-fat">261.363</span></div>
+      <div class="delta up" id="k-fat-d">▲ 61,3% <span class="prev">vs. R$ 162.009 em mai</span></div>
+    </div>
+    <div class="kpi est">
+      <div class="lab">Ticket médio</div>
+      <div class="val"><span class="cur">R$ </span><span id="k-ticket">1.460</span></div>
+      <div class="delta down" id="k-ticket-d">▼ 9,9% <span class="prev">vs. R$ 1.620 em mai</span></div>
+    </div>
+    <div class="kpi">
+      <div class="lab">Negociações em aberto</div>
+      <div class="val" id="k-aberto">306</div>
+      <div class="delta"><span class="prev">118 em estágio quente (SQL)</span></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>Evolução mensal <span class="tag">vendas + faturamento estimado</span></h3>
+      <div class="chart-box tall"><canvas id="chart-evolucao"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Vendas por produto <span class="tag" id="prod-mes">junho</span></h3>
+      <div class="chart-box tall"><canvas id="chart-produto"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px">
+    <div class="panel">
+      <h3>Motivos de perda <span class="tag" id="loss-mes">junho</span></h3>
+      <div id="loss-list"></div>
+    </div>
+    <div class="panel">
+      <h3>Origem das vendas <span class="tag">por canal · junho</span></h3>
+      <div class="chart-box"><canvas id="chart-canal"></canvas></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Fonte: Kommo CRM · 3 pipelines · 4.764 negociações</span>
+    <span id="foot-update">Atualizado automaticamente · última carga: hoje 04h00</span>
+  </div>
+
+</div>
+
+<script>
+// ---- Dados reais extraídos (junho como referência) ----
+const COR={ink:'#14181F',accent:'#C8462B',gold:'#B8873B',green:'#2F7A54',soft:'#3A424F',line:'#E3E1DA'};
+Chart.defaults.font.family="'Inter',sans-serif";
+Chart.defaults.font.size=12;
+Chart.defaults.color='#8A8E96';
+
+// Evolução mensal (fev-jul 2026) — dados reais
+const meses=['Fev','Mar','Abr','Mai','Jun','Jul'];
+const vendasMes=[33,55,388,100,179,8];
+const fatMes=[43801,88844,581539,162009,261363,17279];
+
+new Chart(document.getElementById('chart-evolucao'),{
+  data:{labels:meses,
+    datasets:[
+      {type:'bar',label:'Faturamento estimado (R$)',data:fatMes,
+       backgroundColor:'rgba(200,70,43,.12)',borderColor:COR.accent,borderWidth:1.5,
+       yAxisID:'y',order:2,borderRadius:4},
+      {type:'line',label:'Nº de vendas',data:vendasMes,
+       borderColor:COR.ink,backgroundColor:COR.ink,borderWidth:2.5,
+       tension:.3,yAxisID:'y1',order:1,pointRadius:4,pointBackgroundColor:COR.ink}
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:14,font:{size:11}}}},
+    scales:{
+      y:{position:'left',grid:{color:COR.line},ticks:{callback:v=>'R$'+(v/1000)+'k'}},
+      y1:{position:'right',grid:{drawOnChartArea:false},ticks:{stepSize:100}}
+    }}
+});
+
+// Produto (junho) — dados reais
+const prodChart=new Chart(document.getElementById('chart-produto'),{
+  type:'doughnut',
+  data:{labels:['Comunidade Invictus','Máquina de Tráfego','Máquina Black'],
+    datasets:[{data:[146,33,0],
+      backgroundColor:[COR.accent,COR.gold,COR.soft],borderWidth:2,borderColor:'#fff'}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:12,font:{size:11}}}}}
+});
+
+// Motivos de perda (junho) — dados reais
+const motivos=[['VENDAS_SEM RETORNO',548],['MKT_BAD FIT',457],['MKT_LEAD INVÁLIDO',140],
+  ['VENDAS_SEM FIT FINANCEIRO',50],['Sem motivo',24],['VENDAS_SEM URGÊNCIA',12]];
+const maxM=Math.max(...motivos.map(m=>m[1]));
+document.getElementById('loss-list').innerHTML=motivos.map(([n,v])=>
+  `<div class="loss-row"><div class="name">${n}</div>
+   <div class="bar"><span style="width:${v/maxM*100}%"></span></div>
+   <div class="n">${v}</div></div>`).join('');
+
+// Canal (junho) — dados reais
+new Chart(document.getElementById('chart-canal'),{
+  type:'bar',
+  data:{labels:['Não ident.','Lista espera','Checkout','Google','FB/Meta'],
+    datasets:[{data:[166,6,4,2,1],backgroundColor:COR.gold,borderRadius:4}]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:COR.line}},y:{grid:{display:false}}}}
+});
+
+// ---- Interatividade dos filtros (demo: recalcula rótulos) ----
+// Numa versão conectada, isto dispararia releitura dos dados do Sheets.
+const nomesMes={'2026-02':'Fevereiro / 2026','2026-03':'Março / 2026','2026-04':'Abril / 2026',
+  '2026-05':'Maio / 2026','2026-06':'Junho / 2026','2026-07':'Julho / 2026'};
+document.getElementById('f-mes').addEventListener('change',e=>{
+  const m=e.target.value;
+  document.getElementById('ref-label').textContent=nomesMes[m];
+  const curto=nomesMes[m].split(' ')[0].toLowerCase().slice(0,3);
+  document.getElementById('prod-mes').textContent=curto;
+  document.getElementById('loss-mes').textContent=curto;
+});
+</script>
+</body>
+</html>
