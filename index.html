@@ -58,6 +58,38 @@
   .foot{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);
     display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   #loading{text-align:center;padding:80px 20px;color:var(--muted);font-size:15px}
+  /* Navegação por abas */
+  .tabs{display:flex;gap:4px;margin:20px 0 24px;border-bottom:1px solid var(--line)}
+  .tab-btn{background:none;border:none;padding:12px 20px;font-family:inherit;font-size:14px;font-weight:700;
+    color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+  .tab-btn:hover{color:var(--ink-soft)}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+  /* Seção de análise */
+  .analise{max-width:820px}
+  .analise h2{font-family:Georgia,serif;font-size:23px;font-weight:800;letter-spacing:-.01em;
+    margin:34px 0 8px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+  .analise h2:first-child{margin-top:0}
+  .analise h3{font-size:15px;font-weight:700;color:var(--ink);margin:26px 0 10px}
+  .analise p{font-size:14px;color:var(--ink-soft);margin-bottom:12px;line-height:1.65}
+  .analise .lead-in{font-size:14px;color:var(--muted);margin-bottom:20px;font-style:italic}
+  .analise table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:12.5px}
+  .analise th{background:var(--ink);color:#fff;text-align:left;padding:9px 11px;font-weight:600}
+  .analise td{padding:9px 11px;border-bottom:1px solid var(--line);color:var(--ink-soft);vertical-align:top}
+  .analise tr:nth-child(even) td{background:#FaF9F6}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+  .b-ok{background:#E4F0E8;color:var(--green)}
+  .b-parcial{background:#FBF4E7;color:var(--gold)}
+  .b-falta{background:var(--accent-soft);color:var(--accent)}
+  .achado{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:0 10px 10px 0;padding:18px 22px;margin:16px 0}
+  .achado h3{margin-top:0;color:var(--accent)}
+  .achado .big{font-size:32px;font-weight:800;font-family:Georgia,serif;color:var(--ink);margin:4px 0}
+  .prio{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line)}
+  .prio .num{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  .prio .txt strong{color:var(--ink)}
+  .frase-final{background:var(--ink);color:#F0EEE8;padding:22px 26px;border-radius:12px;margin-top:24px;font-size:14px;line-height:1.6}
+  .frase-final strong{color:#fff}
   @media(max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start;gap:10px}}
 </style>
 </head>
@@ -71,6 +103,12 @@
     <div class="period-pill">Período de referência<strong id="ref-label">—</strong></div>
   </header>
 
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="painel">Painel</button>
+    <button class="tab-btn" data-tab="analise">Análise de Gargalos</button>
+  </nav>
+
+  <div id="view-painel">
   <div class="est-note">
     <strong>* Valores estimados.</strong> Vendas total e ticket médio são calculados por ticket médio manual por produto (o valor real ainda não é preenchido no Kommo). Número de vendas, negociações e motivos de perda são dados reais.
   </div>
@@ -147,9 +185,95 @@
       <span id="foot-update">Amostra de validação · dados reais de fev–jul 2026</span>
     </div>
   </div>
-</div>
+  </div><!-- fim view-painel -->
+
+  <div id="view-analise" style="display:none">
+    <div class="analise">
+      <p class="lead-in">Documento de apoio à leitura do painel · dados de fev–jul 2026 · 3 pipelines · 4.764 negociações</p>
+
+      <h2>1 — O que foi pedido vs. o que o painel entrega</h2>
+      <p>A coluna "origem da lacuna" é a parte importante: mostra se o que falta depende do CRM, do comercial ou do marketing.</p>
+
+      <h3>Vendas 01: Geral</h3>
+      <table>
+        <tr><th>Item pedido</th><th>Status</th><th>Origem da lacuna</th></tr>
+        <tr><td>Vendas total</td><td><span class="badge b-parcial">Estimado</span></td><td>Comercial: o valor da venda não é preenchido nas deals do Kommo. Hoje sai de ticket médio manual.</td></tr>
+        <tr><td>Número de vendas</td><td><span class="badge b-ok">Completo</span></td><td>—</td></tr>
+        <tr><td>Ticket médio</td><td><span class="badge b-parcial">Estimado</span></td><td>Mesma causa: sem valor real na deal, é média fixa por produto.</td></tr>
+        <tr><td>Metas vs. realizado</td><td><span class="badge b-falta">Ausente</span></td><td>Gestão: não há base de metas por produto/mês registrada. Precisa ser definida.</td></tr>
+        <tr><td>Comparativo % período anterior</td><td><span class="badge b-ok">Completo</span></td><td>—</td></tr>
+        <tr><td>Filtros: período, produto, canal</td><td><span class="badge b-parcial">Parcial</span></td><td>Marketing: filtro de canal existe, mas 56% das deals não têm canal identificável.</td></tr>
+        <tr><td>Negociações em aberto</td><td><span class="badge b-ok">Completo</span></td><td>—</td></tr>
+        <tr><td>Projeção de fechamento (forecast)</td><td><span class="badge b-falta">Ausente</span></td><td>Estrutural: forecast real depende de lead scoring (temperatura), que não existe hoje.</td></tr>
+      </table>
+
+      <h3>Vendas 02: Performance por funil</h3>
+      <table>
+        <tr><th>Item pedido</th><th>Status</th><th>Origem da lacuna</th></tr>
+        <tr><td>Leads / MQLs / SQLs / Vendas</td><td><span class="badge b-parcial">Parcial</span></td><td>As contagens existem, mas o funil é retrato de export, não fluxo vivo. Quase toda deal já está no desfecho, então as etapas intermediárias ficam distorcidas.</td></tr>
+        <tr><td>Comparativo com período anterior</td><td><span class="badge b-parcial">Parcial</span></td><td>Funciona para vendas; para Lead/MQL/SQL sofre da distorção acima.</td></tr>
+        <tr><td>Comparativo com metas</td><td><span class="badge b-falta">Ausente</span></td><td>Não há base de metas registrada.</td></tr>
+      </table>
+
+      <h3>Relatórios</h3>
+      <table>
+        <tr><th>Item pedido</th><th>Status</th><th>Origem da lacuna</th></tr>
+        <tr><td>Motivos de perda</td><td><span class="badge b-ok">Completo</span></td><td>É o dado mais forte que temos.</td></tr>
+        <tr><td>CAC</td><td><span class="badge b-falta">Ausente</span></td><td>Marketing: exige investimento em mídia, que não vive no CRM.</td></tr>
+        <tr><td>Custo por SQL</td><td><span class="badge b-falta">Ausente</span></td><td>Mesma causa do CAC.</td></tr>
+        <tr><td>Conversões por etapa</td><td><span class="badge b-parcial">Não confiável</span></td><td>Estrutural: sem rastrear cada venda até a origem, as taxas dão números sem sentido. Só a base viva resolve.</td></tr>
+      </table>
+
+      <h2>2 — De quem é cada limitação</h2>
+      <p><strong>CRM (Kommo) — configuração:</strong> não é culpa da ferramenta; é o Kommo não estar configurado para capturar certos dados. O campo de valor está vazio, não há campo de comissão, não há lead scoring, e a origem/canal chega bagunçada nas tags.</p>
+      <p><strong>Comercial — processo:</strong> o valor da venda não é registrado na deal — sem isso, faturamento e ticket real são impossíveis. Não há metas registradas. E o motivo de perda mais usado, "sem retorno" (53% das perdas), revela um follow-up que desiste cedo.</p>
+      <p><strong>Marketing — rastreabilidade:</strong> 56% das negociações não têm canal identificável. Isso cega metade da análise de origem e torna CAC por canal impossível hoje.</p>
+      <p><strong>Estrutural — capacidades que ainda não existem:</strong> forecast e conversão por etapa exigem lead scoring em cada lead e uma base viva e rastreável em vez de export estático. Ambas são construíveis — é o próximo passo.</p>
+
+      <h2>3 — Diagnóstico: onde estão os maiores gargalos</h2>
+
+      <div class="achado">
+        <h3>Achado 1 — O maior buraco é o follow-up, não a geração de leads</h3>
+        <div class="big">53,4%</div>
+        <p>de todas as perdas são "sem retorno" (1.973 de 3.694 deals perdidas). Mais da metade das oportunidades não foram perdidas para concorrente, preço ou fit — o lead parou de responder e a conversa morreu. Por produto: Máquina de Tráfego 730 casos (53% das deals), Máquina Black 454 (45%), Comunidade Invictus 789 (33%). É o maior problema e o mais barato de atacar: o lead já foi pago em mídia e já demonstrou interesse. Recuperar uma fração é o retorno mais rápido disponível.</p>
+      </div>
+
+      <div class="achado">
+        <h3>Achado 2 — A qualidade do lead trava a Máquina Black</h3>
+        <p>Conversão sobre deals fechadas: Comunidade Invictus <strong>27,3%</strong> (saudável), Máquina de Tráfego <strong>12,2%</strong> (mediano), Máquina Black <strong>0,8%</strong> — 8 vendas em 1.011 deals. Os motivos de perda da Black apontam a causa: forte presença de "bad fit" e "lead inválido". O problema não é o fechamento — é que os leads que chegam não têm perfil. Isso é segmentação de marketing, não talento do closer. A Black está sendo oferecida ao público certo, ou recebendo sobra de tráfego de outros produtos?</p>
+      </div>
+
+      <div class="achado">
+        <h3>Achado 3 — Marketing vs. Vendas: onde as perdas se concentram</h3>
+        <p>Perdas atribuíveis a <strong>Vendas</strong> (sem retorno, sem urgência, abordagem, preço): <strong>2.324 deals</strong>. Perdas atribuíveis a <strong>Marketing</strong> (bad fit, lead inválido, baixa intenção, perfil): <strong>1.246 deals</strong>. O comercial perde quase o dobro — mas a maior fatia é o "sem retorno", que é recuperável com processo. As perdas de marketing são mais estruturais: lead sem perfil dificilmente vira cliente. Leitura: o comercial tem o maior volume de perda recuperável; o marketing tem um problema de precisão de mira que afeta desproporcionalmente a Black.</p>
+      </div>
+
+      <h2>4 — Caminho proposto (por prioridade e retorno)</h2>
+      <div class="prio"><div class="num">1</div><div class="txt"><strong>Atacar o "sem retorno" — retorno rápido, custo baixo.</strong> Régua de follow-up com múltiplos toques (a maioria das vendas acontece entre o 5º e o 12º contato; o vendedor médio desiste no 2º) e rotina de reativação de leads frios. Não depende de tecnologia nova — depende de processo.</div></div>
+      <div class="prio"><div class="num">2</div><div class="txt"><strong>Preencher o valor da venda na deal — destrava o relatório inteiro.</strong> Curto prazo: preenchimento manual ao fechar. Médio prazo: automação (card entra em "ganha" → recebe o valor). Transforma metade do painel de estimado em real.</div></div>
+      <div class="prio"><div class="num">3</div><div class="txt"><strong>Padronizar a captura de canal/origem — destrava CAC.</strong> Enquanto 56% dos leads não têm origem, metade da análise de aquisição é cega. Padronizar tags de origem na entrada (idealmente via UTM automático).</div></div>
+      <div class="prio"><div class="num">4</div><div class="txt"><strong>Implementar lead scoring / temperatura — destrava o forecast.</strong> Um scoring simples (quente/morno/frio por critérios objetivos) já permite projeção com base real. Fecha o último item pendente do pedido.</div></div>
+      <div class="prio"><div class="num">5</div><div class="txt"><strong>Base viva (Apps Script + API Kommo) — já em andamento.</strong> Resolve a distorção do funil e das conversões por etapa, porque mede sobre dados vivos. É também o que faz o painel atualizar sozinho.</div></div>
+
+      <div class="frase-final">
+        O relatório entrega hoje, com confiança, <strong>o que aconteceu</strong> (número de vendas, motivos de perda, tamanho do pipeline). O que ainda não entrega — faturamento real, CAC, forecast — não é limitação da ferramenta nem do painel: é reflexo de dados que ainda não são capturados no processo. A boa notícia é que o maior gargalo revelado (mais da metade das perdas por "sem retorno") é também o mais barato de corrigir, e não depende de nenhuma dessas peças novas para começar.
+      </div>
+    </div>
+  </div><!-- fim view-analise -->
+</div><!-- fim wrap -->
 
 <script>
+// Navegação por abas
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab=btn.dataset.tab;
+    document.getElementById('view-painel').style.display=(tab==='painel')?'block':'none';
+    document.getElementById('view-analise').style.display=(tab==='analise')?'block':'none';
+  });
+});
+
 // ============================================================
 // FONTE DE DADOS
 // Nesta versão de validação, lê o arquivo dados_amostra.json do próprio repositório.
